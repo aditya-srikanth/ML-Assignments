@@ -1,0 +1,7 @@
+{
+	"NumberOfFields": 3 ,
+	"NumberOfDataPoints": 1000 ,
+	"field1": "IndexNumber" ,
+	"field2": "X-Coordinate" ,
+	"field3": "Y-Coordinate"
+}
