@@ -30,19 +30,13 @@ def animate(i):
 	return plot,
 
 def plot_data(list_of_weights,class_0_coordinates,class_1_coordinates,labels):
-	print(len(class_0_coordinates))
-	print(len(class_1_coordinates))
 	ax.scatter(class_0_coordinates[:,0],class_0_coordinates[:,1],c='blue')
 	ax.scatter(class_1_coordinates[:,0],class_1_coordinates[:,1],c='red')
 	global w_list
 	w_list = list_of_weights
-	print(w_list)
 	ani = animation.FuncAnimation(fig, animate, init_func=init, frames=np.arange(0,len(w_list),1), blit=True)
 	plt.show()
-	if input('save as GIF? (Y/N)') == 'Y':
-	    ani.save('line.gif', dpi=80, writer='imagemagick')
-
-
+	
 def get_hard_coded_params():
 	
 	## Hardcoded parameters
@@ -96,7 +90,7 @@ def perceptron(dataset_index):
  
 	## Hardcoded for perceptron
 	number_of_basis_funcs = 2 
-	learn_rate = 0.01	
+	learn_rate = 0.1	
 	number_of_iter = 1000
 	w = np.random.rand(number_of_basis_funcs+1,1) # As we assume a 2 input + 1 bias
 	coordinates = data_dict['coordinates']
@@ -176,10 +170,9 @@ def lda(dataset_index,plot=True):
 		plt.cla()
 		plt.scatter(data[0][:,0],data[0][:,1],c='blue')
 		plt.scatter(data[1][:,0],data[1][:,1],c='red')
-		plt.scatter(threshold[0]*w[0],threshold[1]*w[1],c='yellow')
+		plt.scatter(threshold[0]*w[0],threshold[1]*w[1],c='green')
 		x = np.arange(-1,1,.1)
 		y = -w[1]*x/w[0]
-		print(x,y)
 		plt.plot(x,y)
 		plt.xlim(-3,3)
 		plt.ylim(-3,3)
