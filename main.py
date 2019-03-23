@@ -10,8 +10,38 @@ Preamble:
 import numpy as np 
 import pandas as pd
 from matplotlib import pyplot as plt
+import matplotlib.animation as animation
 import pickle 
 import os 
+
+fig,ax = plt.subplots()
+plot, = plt.plot([],[],animated=True)
+x = np.arange(-3,3,0.1)
+line = None
+
+w_list = []
+
+def init():
+	return plot,
+
+def animate(i):
+	y =  -w_list[i][0]/w_list[i][2] - w_list[i][1]/w_list[i][2]*x
+	plot.set_data(x,y) 
+	return plot,
+
+def plot_data(list_of_weights,class_0_coordinates,class_1_coordinates,labels):
+	print(len(class_0_coordinates))
+	print(len(class_1_coordinates))
+	ax.scatter(class_0_coordinates[:,0],class_0_coordinates[:,1],c='blue')
+	ax.scatter(class_1_coordinates[:,0],class_1_coordinates[:,1],c='red')
+	global w_list
+	w_list = list_of_weights
+	print(w_list)
+	ani = animation.FuncAnimation(fig, animate, init_func=init, frames=np.arange(0,len(w_list),1), blit=True)
+	plt.show()
+	if input('save as GIF? (Y/N)') == 'Y':
+	    ani.save('line.gif', dpi=80, writer='imagemagick')
+
 
 def get_hard_coded_params():
 	
@@ -66,14 +96,12 @@ def perceptron(dataset_index):
  
 	## Hardcoded for perceptron
 	number_of_basis_funcs = 2 
-	learn_rate = 0.1
-	number_of_iter = 10
-
-	w = np.random.rand(number_of_basis_funcs+1,1); # As we assume a 2 input + 1 bias
-	
+	learn_rate = 0.01	
+	number_of_iter = 1000
+	w = np.random.rand(number_of_basis_funcs+1,1) # As we assume a 2 input + 1 bias
 	coordinates = data_dict['coordinates']
 	labels = data_dict['labels']
-
+	perceptron_labels = 2*labels-1
 	'''
 		Transfromation if any should happen here.
 	'''
@@ -84,26 +112,32 @@ def perceptron(dataset_index):
 	onz = np.ones((n,1))
 	transformed = np.hstack( (onz,transformed) )
 
+	w_list = []
+	w_list.append(w)
+
 	for i in range(0,number_of_iter): 
 		val=np.dot(transformed,w).flatten()
 
-		indices1 = np.argwhere( (labels==0) & (val>=0) ).flatten()
-		indices2 = np.argwhere( (labels==1) & (val<0) ).flatten()
-		error = -1 * np.sum (  labels[ indices1 ] * val[ indices1 ]  )
-		error = error + -1 * np.sum ( labels[ indices2 ] * val[ indices2 ] ) 
-		
-		print('indices1',indices1.shape)
-		print('transformed:',transformed[indices1].shape)
-		print('val:',val[indices1].shape)		
-		
-		grad =  -1*np.sum ( np.dot( val[ indices1 ] , transformed[ indices1 ] ), axis = 0 )
-		grad =  grad + -1*np.sum ( np.dot( val[ indices2 ] , transformed[ indices2 ] ), axis = 0 )
+		indices1 = np.argwhere( (perceptron_labels==-1) & (val>=0) ).flatten()
+		indices2 = np.argwhere( (perceptron_labels==1) & (val<0) ).flatten()
+		error = -1 * np.sum (perceptron_labels[ indices1 ] * val[ indices1 ]  )
+		error = error + -1 * np.sum ( perceptron_labels[ indices2 ] * val[ indices2 ] ) 
+		print('loss: ',error)
+		if error == 0.:
+			break
+		grad =  -1*( np.dot(perceptron_labels[ indices1 ],transformed[ indices1 ]) )
+		# print(grad.shape)
+		grad =  grad + -1*np.dot(perceptron_labels[ indices2 ] , transformed[ indices2 ])
+		# print('grad: ',grad)
 		grad=grad.T
-
-		w = w - learn_rate*grad  
-		
+		temp = w.T - learn_rate*grad  
+		w = temp.T
+		w_list.append(w)
+	
 	print('The value for weight ',w)
-
+	
+	print('showing animation')
+	plot_data(w_list,data_dict['class_0_coordinates'],data_dict['class_1_coordinates'],labels)
 
 def lda(dataset_index,plot=True):
 
