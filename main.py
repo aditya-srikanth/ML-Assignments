@@ -5,7 +5,8 @@ Ch Vishal
 Aditya Srikanth
 
 Preamble:
-
+This code contains the implementation for Fisher's Linear Discriminent and the Perceptron Algorithm to help solve a classification problem.
+Currently, this program has the capability to solve only for two classes.
 '''
 import numpy as np 
 import pandas as pd
@@ -16,24 +17,28 @@ import os
 
 fig,ax = plt.subplots()
 plot, = plt.plot([],[],animated=True)
-x = np.arange(-3,3,0.1)
+x = np.arange(-3,3,0.1) # We deal in the domain from -3 to 3 separated by 0.1
 line = None
 
-w_list = []
+w_list = [] ## list to store the weights obtained during the training of the perceptron algorithm
 
 def init():
 	return plot,
 
 def animate(i):
-	y =  -w_list[i][0]/w_list[i][2] - w_list[i][1]/w_list[i][2]*x
+	y =  -w_list[i][0]/w_list[i][2] - w_list[i][1]/w_list[i][2]*x #w0 + w1x + w2y => Simiplifies to the expression used here
 	plot.set_data(x,y) 
 	return plot,
 
 def plot_data(list_of_weights,class_0_coordinates,class_1_coordinates,labels):
+	'''
+		This contains the animation for the perceptron algorithm.
+	'''
+	## the class points are static in nature
 	ax.scatter(class_0_coordinates[:,0],class_0_coordinates[:,1],c='blue')
 	ax.scatter(class_1_coordinates[:,0],class_1_coordinates[:,1],c='red')
 	global w_list
-	w_list = list_of_weights
+	w_list = list_of_weights # assign the value to the global list 
 	ani = animation.FuncAnimation(fig, animate, init_func=init, frames=np.arange(0,len(w_list),1), blit=True)
 	plt.show()
 	
@@ -95,7 +100,7 @@ def perceptron(dataset_index):
 	w = np.random.rand(number_of_basis_funcs+1,1) # As we assume a 2 input + 1 bias
 	coordinates = data_dict['coordinates']
 	labels = data_dict['labels']
-	perceptron_labels = 2*labels-1
+	perceptron_labels = 2*labels-1 # 2-1=1 and 0-1=-1 Thus, all the labels will now be 1 and -1
 	'''
 		Transfromation if any should happen here.
 	'''
@@ -110,28 +115,31 @@ def perceptron(dataset_index):
 	w_list.append(w)
 
 	for i in range(0,number_of_iter): 
-		val=np.dot(transformed,w).flatten()
+		val=np.dot(transformed,w).flatten() # the predicted value
 
-		indices1 = np.argwhere( (perceptron_labels==-1) & (val>=0) ).flatten()
-		indices2 = np.argwhere( (perceptron_labels==1) & (val<0) ).flatten()
-		error = -1 * np.sum (perceptron_labels[ indices1 ] * val[ indices1 ]  )
+		indices1 = np.argwhere( (perceptron_labels==-1) & (val>=0) ).flatten() # posive prediction and negative label
+		indices2 = np.argwhere( (perceptron_labels==1) & (val<0) ).flatten() # negative prediction and positive label
+		error = -1 * np.sum (perceptron_labels[ indices1 ] * val[ indices1 ]  ) 
 		error = error + -1 * np.sum ( perceptron_labels[ indices2 ] * val[ indices2 ] ) 
 		print('loss: ',error)
-		if error == 0.:
+
+		if error == 0.: # we can't do any better than thatfalse poistive
 			break
+		
 		grad =  -1*( np.dot(perceptron_labels[ indices1 ],transformed[ indices1 ]) )
-		# print(grad.shape)
 		grad =  grad + -1*np.dot(perceptron_labels[ indices2 ] , transformed[ indices2 ])
-		# print('grad: ',grad)
-		grad=grad.T
-		temp = w.T - learn_rate*grad  
-		w = temp.T
+		grad =  np.reshape(grad,(grad.shape[0],1))
+
+		grad=grad
+		w = w - learn_rate*grad  # Update for the gradient descent
 		w_list.append(w)
 	
 	print('The value for weight ',w)
 	
+	## The code for the animation
 	print('showing animation')
-	plot_data(w_list,data_dict['class_0_coordinates'],data_dict['class_1_coordinates'],labels)
+	# (weights from training,class 0, class 1, labels)
+	plot_data(w_list,data_dict['class_0_coordinates'],data_dict['class_1_coordinates'],labels) ## Hardcoded for two classes
 
 def lda(dataset_index,plot=True):
 
@@ -180,10 +188,13 @@ def lda(dataset_index,plot=True):
 
 
 def main():
+	## Obtain the data from the data sets
 	getData()
 	
-	to_run_program = int(input("enter 1 for perceptron, 2 for lda\n"))
+	## taking the user input
+	to_run_program = int(input("enter: \n1 for perceptron, \n2 for lda\n"))
 	on_which_dataset = int(input("enter 1\n for dataset->1\n 2 for dataset->2\n 3 for dataset->3\n"))
+	
 	if to_run_program == 1:
 		perceptron(on_which_dataset)
 	elif to_run_program == 2:
