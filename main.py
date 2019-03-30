@@ -12,6 +12,7 @@ import numpy as np
 import pandas as pd
 from matplotlib import pyplot as plt
 import matplotlib.animation as animation
+from scipy.stats import norm
 import pickle
 import os
 import math
@@ -41,6 +42,9 @@ def plot_data(list_of_weights,class_0_coordinates,class_1_coordinates,labels):
 	global w_list
 	w_list = list_of_weights # assign the value to the global list
 	ani = animation.FuncAnimation(fig, animate, init_func=init, frames=np.arange(0,len(w_list),1), blit=True)
+	Writer = animation.writers['ffmpeg']
+	writer = Writer(fps=30, metadata=dict(artist='Me'), bitrate=1800)
+	ani.save('perceptron3.mp4',writer = writer)
 	plt.show()
 
 def get_hard_coded_params():
@@ -159,58 +163,85 @@ def lda(dataset_index,plot=True):
 		covar[i] = np.cov(data[i].T,bias=False)
 		# var.append(np.var(data))
 
-	## Currently we only differente between two classes
+	# Currently we only differente between two classes
 	Sw = covar[0]*data[0].shape[0] + covar[1]*data[1].shape[0] #Finding the weighed sum
-	delta_m = mean[0] - mean[1]
+	delta_m = mean[1] - mean[0]
 	w = np.linalg.inv(Sw)
 	w = w.dot(delta_m)
-	w = w/np.sum(w**2)**0.5 					# making into a unit vector
-
+	print(w)
+	w = w/(np.sum(w**2)**0.5) 					# making into a unit vector
+	print(w)
 	# finding the projections
 	projections = [[],[]]
 	mu = [0,0]
 	var = [0,0]
+	#plot the points of two classes
+	plt.scatter(data[0][:,0],data[0][:,1],c='blue',alpha=0.2)
+	plt.scatter(data[1][:,0],data[1][:,1],c='red',alpha=0.2)
+	plt.show()
+	#calculate the point projections on the w vector
 	for i in range(2):
-		projections[i].append(np.matmul(np.transpose(w).reshape(1,2),data[i].T))
+		# projections[i].append(np.matmul(np.transpose(w).reshape(1,2),data[i].T))
+		projections[i] = np.dot(data[i],w)
 		mu[i] = np.mean(projections[i])
 		var[i] = np.var(projections[i])
-	a = var[1] - var[0]
-	b = var[1]*mu[0] - mu[1]*var[0]
-	c = var[1] * mu[0]**2 - var[0] * mu[1]**2 - 2*math.log(math.sqrt(var[1]/var[0]))*var[0]*var[1]
-	sol = [0,0]
-	sol[0] = (-b + math.sqrt(b**2 - 4*a*c))/2*a
-	sol[1] = (-b - math.sqrt(b**2 - 4*a*c))/2*a
+	a = 1/(2*math.sqrt(var[0])**2) - 1/(2*math.sqrt(var[1])**2)
+	b = mu[1]/(math.sqrt(var[1])**2) - mu[0]/(math.sqrt(var[0])**2)
+	c = mu[0]**2 /(2*math.sqrt(var[0])**2) - mu[1]**2 / (2*math.sqrt(var[1])**2) - np.log(math.sqrt(var[1])/math.sqrt(var[0]))
+	# sol[0] = (-b + math.sqrt(b**2 - 4*a*c))/2*a
+	# sol[1] = (-b - math.sqrt(b**2 - 4*a*c))/2*a
+	sol = np.roots([a,b,c])
+	#this is the solution to the intersection of two gaussians for the threshold
 	x = sol[0] if sol[0] <= mu[0] and sol[0] >= mu[1] else sol[1]
-	print(x*w)
 	threshold = x*w
+	print(threshold)
+	# plt.plot((projections[i]*w.reshape(2,1))[::1,0],(projections[i]*w.reshape(2,1))[::1,0],'*',color='b',alpha=0.5)
+	projection_vector_1 = np.stack([projections[0],projections[0]],axis=1)*w
+	projection_vector_2 = np.stack([projections[1],projections[1]],axis=1)*w
+	# print(projection_vector_1.shape**
+
+	#these are the projected points on w vector
+	plt.plot(projection_vector_1[::1,0],projection_vector_1[::1,1],'o',color='blue',alpha=0.5,zorder=1)
+	plt.plot(projection_vector_2[::1,0],projection_vector_2[::1,1],'x',color='red',alpha=0.5,zorder=1)
+
+	# plt.show()
+	#creating the normal distributions of the projected points
+	W_perpendicular = np.array([-w[1],w[0]])
+	z=np.linspace(-3,3,1000)
+	points=np.column_stack([z,z])
+
+	projection_points=points*w
+	normal_point_class1 = norm.pdf(z,mu[0],math.sqrt(var[0]))
+	normal_point_class2 = norm.pdf(z,mu[1],math.sqrt(var[1]))
+	normal_projection_vec_class1 = np.column_stack([normal_point_class1,normal_point_class1])*W_perpendicular
+	normal_projection_vec_class2 = np.column_stack([normal_point_class2,normal_point_class2])*W_perpendicular
+	normal_class1 = projection_points+normal_projection_vec_class1
+	normal_class2 = projection_points+normal_projection_vec_class2
+	plt.plot(normal_class1[::1,0],normal_class1[::1,1],'-',color='black',alpha=0.7,zorder=1)
+	plt.plot(normal_class2[::1,0],normal_class2[::1,1],'-',color='black',alpha=0.7,zorder=1)
+	# plt.show()
+
 	# threshold = mean[0] + mean[1]
 	# threshold /= 2 # Using the average as the threshold
-	print('The value for the weight is {0} and the threshold is {1}'.format( w, np.sum(threshold*w) ) )
-	"""
-	alternative solution, N1(mu1,sigma1) = N2(mu2,sigma2)
-	After solving that, we get something of the form ax**2 + bx + c
-	a = (var2 - var1)
-	b = (var2 * mu1 - var1 * mu2)
-	c = (var2 * mu1^2 - var1 * mu2^2 - 2*ln(std2/std1)*var1*var2
-	x = -b +/- sqrt(b^2 - 4ac)/2a
-	"""
-	plt.scatter(data_dict['coordinates'][:,0],data_dict['coordinates'][:,1])
-	plt.show()
-
+	print('The value for the weight is {0} and the threshold is {1}'.format( w, threshold ) )
+	# plt.scatter(data_dict['coordinates'][:,0],data_dict['coordinates'][:,1])
+	# plt.show()
+	
+	#plotting the points of class 1 and class 2 along with the normal distributions and the threshold point
 	if plot:
-		plt.cla()
-		plt.scatter(data[0][:,0],data[0][:,1],c='blue')
-		plt.scatter(data[1][:,0],data[1][:,1],c='red')
-		plt.scatter(threshold[0]*w[0],threshold[1]*w[1],c='green')
-		x_vals = np.array(plt.gca().get_xlim())
-		y_vals = -(w[0]/w[1])*x_vals + (threshold[1]*w[1] + (w[0]/w[1])*threshold[0]*w[0])
-		plt.plot(x_vals,y_vals)
+		# plt.cla()
+		plt.scatter(data[0][:,0],data[0][:,1],c='blue',alpha=0.2)
+		plt.scatter(data[1][:,0],data[1][:,1],c='red',alpha=0.2)
+		plt.scatter(threshold[0]*w[0],threshold[1]*w[1],c='green',zorder=2)
+		# x_vals = np.array(plt.gca().get_xlim())
+		# y_vals = -(w[0]/w[1])*x_vals + (threshold[1]*w[1] + (w[0]/w[1])*threshold[0]*w[0])
+		# plt.plot(x_vals,y_vals)
 		x = np.arange(-1,1,.1)
-		y = -w[1]*x/w[0]
-		plt.plot(x,y)
+		y = w[1]*x/w[0]
+		plt.plot(x,y,zorder=1.5)
 		plt.xlim(-3,3)
 		plt.ylim(-3,3)
-		plt.show()
+	plt.show()
 
 
 def main():
