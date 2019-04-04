@@ -111,11 +111,14 @@ def naive_bayes():
         test_labels = (data_dict['test_data'])['class_labels']
 
         conditional_probability_table = {}
-
+        prior ={}
+        prior[hardcoded_params.POSITIVE_CLASS] = 0
+        prior[hardcoded_params.NEGATIVE_CLASS] = 0
         N = len(train_features)
 
         for train_data_index in range(train_size):
             datapoint_class = train_labels[train_data_index]
+            prior[datapoint_class] += 1/N
             for word in train_features[train_data_index]:
                 if datapoint_class == hardcoded_params.POSITIVE_CLASS:
                     if word in conditional_probability_table:
@@ -132,8 +135,8 @@ def naive_bayes():
 
         for test_data_index in range(test_size):
             datapoint_class = test_labels[test_data_index]
-            pos_res = 1.0
-            neg_res = 1.0
+            pos_res = prior[hardcoded_params.POSITIVE_CLASS]
+            neg_res = prior[hardcoded_params.NEGATIVE_CLASS]
             for word in test_features[test_data_index]:
                 if word not in conditional_probability_table:
                     continue 
