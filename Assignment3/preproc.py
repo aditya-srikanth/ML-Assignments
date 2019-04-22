@@ -8,13 +8,15 @@ import hard_code_params
 
 def reduce_data():
     # dirpath, dirnames, filenames = os.walk('./data')
-    if False :# os.path.isfile(hard_code_params.path_pickle_test) and os.path.isfile(hard_code_params.path_pickle_train):
+    if os.path.isfile(hard_code_params.path_pickle_test) and os.path.isfile(hard_code_params.path_pickle_train):
         print('reduced data already present')
     else:
-        testfiles = [f for f in listdir(hard_code_params.path_test) if isfile(join(hard_code_params.path_test, f))]
-        trainfiles = [f for f in listdir(hard_code_params.path_train) if isfile(join(hard_code_params.path_train, f))]
-        testing_data = np.empty((hard_code_params.dim*hard_code_params.dim,1))
-        
+        os.mkdir('./reduced/')
+        os.mkdir('./reduced/train/')
+        os.mkdir('./reduced/test/')
+        testfiles = [f for f in listdir(hard_code_params.path_test) if isfile(join(hard_code_params.path_test, f))][:500]
+        trainfiles = [f for f in listdir(hard_code_params.path_train) if isfile(join(hard_code_params.path_train, f))][:500]
+        testing_data = np.zeros((hard_code_params.dim*hard_code_params.dim,1))
         data_dict = {}
         labels = []
         print('testing_data')
@@ -28,12 +30,16 @@ def reduce_data():
             pix = np.reshape(np.array(img).flatten(),(hard_code_params.dim*hard_code_params.dim,1))
             testing_data = np.hstack( (testing_data,pix) )
             print(testing_data.shape)
-
+        testing_data = testing_data[:,1:]
+        # print(testing_data.shape)
+        testing_data =testing_data.T
+        testing_data = (testing_data - np.mean(testing_data,axis=0))/np.std(testing_data,axis=0)
+        testing_data =testing_data.T
         data_dict['test'] = testing_data
         with open(hard_code_params.path_pickle_test,'wb') as f:
             pickle.dump(data_dict,f)
         
-        training_data = np.empty((hard_code_params.dim*hard_code_params.dim,1))
+        training_data = np.zeros((hard_code_params.dim*hard_code_params.dim,1))
         data_dict = {}
         print('training_data')
         print('max in train is ',len(trainfiles))
@@ -46,15 +52,16 @@ def reduce_data():
             pix = np.reshape(np.array(img).flatten(),(hard_code_params.dim*hard_code_params.dim,1))
             training_data = np.hstack((training_data,pix))
             print(training_data.shape)
-
-        
+        training_data = training_data[:,1:]
+        training_data = training_data.T
+        training_data = (training_data - np.mean(training_data,axis=0))/np.std(training_data,axis=0)
+        training_data = training_data.T
         data_dict['train'] = training_data
         data_dict['labels'] = labels
         with open(hard_code_params.path_pickle_train,'wb') as f:
             pickle.dump(data_dict,f)
             # print(pix.shape)
-        # os.mkdir('./reduced/test')
-        # os.mkdir('./reduced/train')
+
 
 
 
