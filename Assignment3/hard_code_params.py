@@ -6,5 +6,5 @@ path_pickle_train = './reduced/train/train.pickle'
 delim = '.'
 mu = 0
 sigma = 1
-learning_rate = 1e-5
+learning_rate = 5e-3
 epochs = 100

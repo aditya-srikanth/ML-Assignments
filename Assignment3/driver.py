@@ -52,15 +52,19 @@ def main():
         input_for_layers = train
         for layer in weights_list:    
             input_for_layers = layer.forward(input_for_layers)
-        
 
-        grad = labels - input_for_layers
-        for layer in weights_list:    
-            grad = layer.backward(grad)
+        print('loss: ',np.sum((input_for_layers - labels)**2)/train.shape[1])
+        
+        grad = input_for_layers - labels 
+        grad,weights = weights_list[-1].backward(grad,None,last_layer=True)
+        # print('\nlooping: \n')
+        for layer in reversed(weights_list[:-1]):    
+            grad,weights = layer.backward(grad,weights)
 
         for layer in weights_list:
             layer.update()
     
+
     input_for_layers = train
     for layer in weights_list:    
         input_for_layers = layer.forward(input_for_layers)
@@ -70,11 +74,15 @@ def main():
     input_for_layers = input_for_layers.flatten()
     accuracy = 0
 
+
+
+    ## TODO: CHANGE THE INDICES FOR TESTING ACCORDINGLY
     for train_point_index in range(labels.shape[0]):
-        input_for_layers[train_point_index] == labels[train_point_index]
-        accuracy += 1
-    
-    print(accuracy/train.shape[0])
+        if input_for_layers[train_point_index] == labels[train_point_index]:
+            print(train_point_index,input_for_layers[train_point_index],labels[train_point_index])
+            accuracy += 1
+    # print(train)
+    print('accuracy: ',accuracy/train.shape[1])
 
     # sanitycheck(weights_list,train,labels)
 

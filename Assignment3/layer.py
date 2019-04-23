@@ -44,14 +44,14 @@ class Layer:
         :rtype:
         """
         self.input = input_of_prev
-        y = np.dot( self.weights.transpose() , input_of_prev )
+        y = np.dot( self.weights.T , input_of_prev )
         y = y + self.bias
-        print(y.shape)
+        # print('output shape: ',y.shape)
         y = self.activation(y)
         self.output = y
-        return y
+        return np.array(y)
 
-    def backward(self,grad_of_next):
+    def backward(self,grad_of_next,next_layer_weights,last_layer=False):
     
         """ Description
         :type self:
@@ -65,17 +65,20 @@ class Layer:
         :rtype:
         """    
         pass
-        ## TODO: Lookup Adam optimizer
-        # grad = next_grad X W dot deriv at output using this: * TODO fit the dimensions
-        self.gradient_w = (grad_of_next*self.activation(self.output)).dot(self.input.T)
+        ## TODO: DEBUG
         
-        print('aws',(grad_of_next*self.activation(self.output)).shape)
-        print('asfa',self.input.T.shape)
-        self.gradient_b = np.sum((grad_of_next*self.activation(self.output)),axis=1)
-        print(self.gradient_w.shape)
-        print(self.gradient_b.shape)
-        return self.gradient_w
+        if last_layer:
+            delta = (grad_of_next*self.activation(self.output,deriv=True))
+            self.gradient_w = self.input.dot(delta.T)
+            self.gradient_b = np.sum(delta,axis=1)
+        else:
+            delta = (next_layer_weights.dot(grad_of_next ))* self.activation(self.output,deriv=True)
+            self.gradient_w = self.input.dot(delta.T)
+            self.gradient_b = np.reshape(np.sum(delta,axis=1),(self.weights.shape[1],1))
+        
+        return delta,np.array(self.weights)
 
     def update(self):
         self.weights -= self.gradient_w*hard_code_params.learning_rate
         self.bias -= self.gradient_b*hard_code_params.learning_rate
+        
