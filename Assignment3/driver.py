@@ -82,11 +82,12 @@ def main():
     ## TODO: CHANGE THE INDICES FOR TESTING ACCORDINGLY
     for test_point_index in range(test_labels.shape[0]):
         if input_for_layers[test_point_index] == test_labels[test_point_index]:
-            # print(train_point_index,input_for_layers[train_point_index],labels[train_point_index])
+            print(test_point_index,input_for_layers[test_point_index])
             accuracy += 1
     # print(train)
+    print(accuracy)
 
-    print('accuracy: ',accuracy/test.shape[1],' num cats: ',test_labels[test_labels == 0].shape,' num dogs: ',test_labels[test_labels == 0].shape)
+    print('accuracy: ',accuracy/test.shape[1],' num cats: ',test_labels[test_labels == 0].shape,' num dogs: ',test_labels[test_labels == 1].shape)
     # sanitycheck(weights_list,train,labels)
     print(precision_recall_fscore_support(test_labels,input_for_layers))
 
