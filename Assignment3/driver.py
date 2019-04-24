@@ -2,6 +2,7 @@ import hard_code_params
 import pickle
 import numpy as np
 from layer import Layer
+from sklearn.metrics import precision_recall_fscore_support
 
 def read_data():
     with open(hard_code_params.path_pickle_train,'rb') as file_handle:
@@ -12,8 +13,9 @@ def read_data():
     with open(hard_code_params.path_pickle_test,'rb') as file_handle:
         test_dict = pickle.load(file_handle)
         test = test_dict['test']
+        test_labels = test_dict['labels']
 
-    return train,labels,test
+    return train,labels,test,test_labels
 
 # def sanitycheck(weights_list,train,labels):
 #     num_output = len ( set(labels) )
@@ -43,9 +45,10 @@ def main():
         hidden_units = (x,y)
         weights_list.append(Layer(hidden_units))
 
-    train,labels,test = read_data()
-    
+    train,labels,test,test_labels = read_data()
+
     labels = np.array([0 if x == 'cat' else 1 for x in labels])
+    test_labels = np.array([0 if x == 'cat' else 1 for x in test_labels])
     # print(labels)
     
     for epoch in range(hard_code_params.epochs):
@@ -65,7 +68,7 @@ def main():
             layer.update()
     
 
-    input_for_layers = train
+    input_for_layers = test
     for layer in weights_list:    
         input_for_layers = layer.forward(input_for_layers)
 
@@ -77,14 +80,15 @@ def main():
 
 
     ## TODO: CHANGE THE INDICES FOR TESTING ACCORDINGLY
-    for train_point_index in range(labels.shape[0]):
-        if input_for_layers[train_point_index] == labels[train_point_index]:
-            print(train_point_index,input_for_layers[train_point_index],labels[train_point_index])
+    for test_point_index in range(test_labels.shape[0]):
+        if input_for_layers[test_point_index] == test_labels[test_point_index]:
+            # print(train_point_index,input_for_layers[train_point_index],labels[train_point_index])
             accuracy += 1
     # print(train)
-    print('accuracy: ',accuracy/train.shape[1])
 
+    print('accuracy: ',accuracy/test.shape[1],' num cats: ',test_labels[test_labels == 0].shape,' num dogs: ',test_labels[test_labels == 0].shape)
     # sanitycheck(weights_list,train,labels)
+    print(precision_recall_fscore_support(test_labels,input_for_layers))
 
 if __name__ == '__main__':
     main()
