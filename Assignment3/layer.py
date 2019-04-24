@@ -68,7 +68,7 @@ class Layer:
         ## TODO: DEBUG
         
         if last_layer:
-            delta = (grad_of_next*self.activation(self.output,deriv=True))
+            delta = grad_of_next
             self.gradient_w = self.input.dot(delta.T)
             self.gradient_b = np.sum(delta,axis=1)
         else:
