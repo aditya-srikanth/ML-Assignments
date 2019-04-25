@@ -1,6 +1,6 @@
 import numpy as np
 import hard_code_params
-
+np.random.seed(123)
 class Layer:
 
     def __init__(self,hidden_units):
@@ -16,7 +16,7 @@ class Layer:
     
         :rtype:
         """    
-        self.weights = np.random.normal(hard_code_params.mu,hard_code_params.sigma,hidden_units)*0.001  
+        self.weights = np.random.normal(hard_code_params.mu,hard_code_params.sigma,hidden_units)
         self.bias = np.random.normal(hard_code_params.mu,hard_code_params.sigma,(hidden_units[1],1)) # hidden_units[0] input
         self.gradient_w = None
         self.gradient_b = None
@@ -68,12 +68,12 @@ class Layer:
         ## TODO: DEBUG
         
         if last_layer:
-            self.gradient_w = self.input.dot(delta.T)
-            self.gradient_b = np.sum(delta,axis=1)
+            self.gradient_w = self.input.dot(delta.T)/self.input.shape[1]
+            self.gradient_b = np.sum(delta,axis=1)/self.input.shape[1]
         else:
             delta = (next_layer_weights.dot(delta ))* self.activation(self.output,deriv=True)
-            self.gradient_w = self.input.dot(delta.T)
-            self.gradient_b = np.reshape(np.sum(delta,axis=1),(self.weights.shape[1],1))
+            self.gradient_w = self.input.dot(delta.T)/self.input.shape[1]
+            self.gradient_b = np.reshape(np.sum(delta,axis=1),(self.weights.shape[1],1))/self.input.shape[1]
         
         return delta,np.array(self.weights)
 
