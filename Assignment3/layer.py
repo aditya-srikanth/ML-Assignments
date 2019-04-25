@@ -30,7 +30,7 @@ class Layer:
         else:
             return (X)*(1-X)
 
-    def forward(self,input_of_prev):
+    def forward(self,output_of_prev):
     
         """ Description
         :type self:
@@ -43,15 +43,15 @@ class Layer:
     
         :rtype:
         """
-        self.input = input_of_prev
-        y = np.dot( self.weights.T , input_of_prev )
+        self.input = output_of_prev
+        y = np.dot( self.weights.T , output_of_prev )
         y = y + self.bias
         # print('output shape: ',y.shape)
         y = self.activation(y)
         self.output = y
         return np.array(y)
 
-    def backward(self,grad_of_next,next_layer_weights,last_layer=False):
+    def backward(self,delta,next_layer_weights,last_layer=False):
     
         """ Description
         :type self:
@@ -68,11 +68,10 @@ class Layer:
         ## TODO: DEBUG
         
         if last_layer:
-            delta = grad_of_next
             self.gradient_w = self.input.dot(delta.T)
             self.gradient_b = np.sum(delta,axis=1)
         else:
-            delta = (next_layer_weights.dot(grad_of_next ))* self.activation(self.output,deriv=True)
+            delta = (next_layer_weights.dot(delta ))* self.activation(self.output,deriv=True)
             self.gradient_w = self.input.dot(delta.T)
             self.gradient_b = np.reshape(np.sum(delta,axis=1),(self.weights.shape[1],1))
         
