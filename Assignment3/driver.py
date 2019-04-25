@@ -95,7 +95,7 @@ def main():
 
     # input_for_layers[input_for_layers >= 0.5] = 1
     # input_for_layers[input_for_layers != 1] = 0
-    # input_for_layers = input_for_layers.flatten()
+    # input_for_layers = input_for_layers.flatten( )
     # accuracy = 0
 
 
