@@ -14,9 +14,9 @@ def reduce_data():
         os.mkdir('./reduced/')
         os.mkdir('./reduced/train/')
         os.mkdir('./reduced/test/')
-        testfiles = [f for f in listdir(hard_code_params.path_train) if isfile(join(hard_code_params.path_train, f))][10000:15000]
+        testfiles = [f for f in listdir(hard_code_params.path_train) if isfile(join(hard_code_params.path_train, f))][20000:25000]
         # testfiles = [f for f in listdir(hard_code_params.path_test) if isfile(join(hard_code_params.path_test, f))][10000:15000]
-        trainfiles = [f for f in listdir(hard_code_params.path_train) if isfile(join(hard_code_params.path_train, f))][:10000]
+        trainfiles = [f for f in listdir(hard_code_params.path_train) if isfile(join(hard_code_params.path_train, f))][:20000]
         
         
         testing_data = np.zeros((hard_code_params.dim*hard_code_params.dim,1))
@@ -26,7 +26,11 @@ def reduce_data():
         # print('max for test',len(testfiles))
   
         testing_data = np.zeros((hard_code_params.dim*hard_code_params.dim,1))
+        i = 0
         for testfile in testfiles:
+            i += 1
+            if i%100 == 0:
+                print('testing ',i)
             labels += [testfile.split(hard_code_params.delim)[0]]
             # img = PIL.Image.open(hard_code_params.path_test+'/'+testfile).convert('L')
             img = PIL.Image.open(hard_code_params.path_train+'/'+testfile).convert('L')
@@ -51,7 +55,11 @@ def reduce_data():
         labels = []
         print('training_data')
         print('max in train is ',len(trainfiles))
+        i = 0
         for trainfile in trainfiles:
+            i += 1
+            if i%100 == 0:
+                print('training ',i)
             labels += [trainfile.split(hard_code_params.delim)[0]]
             img = PIL.Image.open(hard_code_params.path_train+'/'+trainfile).convert('L')
             img = img.resize((hard_code_params.dim,hard_code_params.dim))

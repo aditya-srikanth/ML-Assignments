@@ -70,13 +70,11 @@ def main():
 
 
 
-    print(test)
     input_for_layers = test
     for layer in weights_list:    
         input_for_layers = layer.forward(input_for_layers)
 
 
-    print(input_for_layers)
     input_for_layers[input_for_layers >= 0.5] = 1
     input_for_layers[input_for_layers != 1] = 0
     input_for_layers = input_for_layers.flatten()

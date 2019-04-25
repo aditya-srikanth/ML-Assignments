@@ -4,7 +4,7 @@ import pandas as pd
 import os
 import pickle
 from pprint import pprint
-
+from sklearn.metrics import precision_recall_fscore_support,confusion_matrix
 import hardcoded_params
 
 def sigmoid(X,deriv = False):
@@ -132,7 +132,10 @@ def naive_bayes():
                         conditional_probability_table[word] = [0,1/N]
         
         acc = 0
-
+        tp = 0
+        fp = 0
+        tn = 0
+        fn = 0
         for test_data_index in range(test_size):
             datapoint_class = test_labels[test_data_index]
             pos_res = prior[hardcoded_params.POSITIVE_CLASS]
@@ -144,10 +147,26 @@ def naive_bayes():
                 neg_res *= conditional_probability_table[word][1]
             if pos_res >= neg_res and datapoint_class == hardcoded_params.POSITIVE_CLASS:
                 acc += 1
+                tp += 1
+
             elif pos_res < neg_res and datapoint_class == hardcoded_params.NEGATIVE_CLASS:
                 acc += 1
-        
+                tn += 1
+            
+            elif pos_res >= neg_res and datapoint_class == hardcoded_params.NEGATIVE_CLASS:
+                fp += 1
+            elif pos_res < neg_res and datapoint_class == hardcoded_params.POSITIVE_CLASS:
+                fn += 1
+
+        print('tp: %s fp: %s tn: %s fn: %s'%(tp,fp,tn,fn))
         print('accuracy',acc/len(test_features)*100)
+        precision = tp/(tp+fp)
+        recall = tp/(tp+fn)
+        print('precision: ',precision)
+        print('recall: ',recall)
+        print('f1 measure: ',(2*precision*recall)/(precision + recall))
+        # print(precision_recall_fscore_support(actual,predicted))
+        # print(confusion_matrix(actual,predicted))
 
 def main():
     algorithm = int(input('enter 0 for logistic regression\nenter 1 for naive bayes\n'))
