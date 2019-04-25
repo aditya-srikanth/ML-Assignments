@@ -39,6 +39,7 @@ def main():
     print('Enter the number of hidden units as a tuple\n\n')
 
     for i in range(0,Layer.number_of_layers):
+        print("Enter the data for layer ",i+1)
         x = int ( input('enter dimension one\n') )
         y = int ( input('enter dimension two\n') )
 
@@ -49,6 +50,10 @@ def main():
 
     labels = np.array([0 if x == 'cat' else 1 for x in labels])
     test_labels = np.array([0 if x == 'cat' else 1 for x in test_labels])
+
+    ## Hack
+    test_labels = labels
+    test = train
     # print(labels)
     
     for epoch in range(hard_code_params.epochs):
@@ -58,11 +63,11 @@ def main():
 
         print('loss: ',np.sum((input_for_layers - labels)**2)/train.shape[1])
         
-        grad = input_for_layers - labels 
-        grad,weights = weights_list[-1].backward(grad,None,last_layer=True)
+        delta = input_for_layers - labels                                                                              
+        delta,weights = weights_list[-1].backward(delta,None,last_layer=True)
         # print('\nlooping: \n')
         for layer in reversed(weights_list[:-1]):    
-            grad,weights = layer.backward(grad,weights)
+            delta,weights = layer.backward(delta,weights)
 
         for layer in weights_list:
             layer.update()
