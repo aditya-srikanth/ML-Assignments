@@ -16,7 +16,7 @@ class Layer:
     
         :rtype:
         """    
-        self.weights = np.random.normal(hard_code_params.mu,hard_code_params.sigma,hidden_units)
+        self.weights = np.random.normal(hard_code_params.mu,hard_code_params.sigma,hidden_units)*0.001  
         self.bias = np.random.normal(hard_code_params.mu,hard_code_params.sigma,(hidden_units[1],1)) # hidden_units[0] input
         self.gradient_w = None
         self.gradient_b = None

@@ -2,6 +2,7 @@ import hard_code_params
 import pickle
 import numpy as np
 from layer import Layer
+from keras import models,layers
 from sklearn.metrics import precision_recall_fscore_support
 
 def read_data():
@@ -56,7 +57,7 @@ def main():
         for layer in weights_list:    
             input_for_layers = layer.forward(input_for_layers)
 
-        print('loss: ',np.sum((input_for_layers - labels)**2)/train.shape[1])
+        print(epoch,'loss: ',np.sum((input_for_layers - labels)**2)/train.shape[1])
         
         grad = input_for_layers - labels 
         grad,weights = weights_list[-1].backward(grad,None,last_layer=True)
@@ -72,24 +73,63 @@ def main():
     for layer in weights_list:    
         input_for_layers = layer.forward(input_for_layers)
 
-    input_for_layers[input_for_layers > 0.5] = 1
+    input_for_layers[input_for_layers >= 0.5] = 1
     input_for_layers[input_for_layers != 1] = 0
     input_for_layers = input_for_layers.flatten()
     accuracy = 0
-
-
-
     ## TODO: CHANGE THE INDICES FOR TESTING ACCORDINGLY
     for test_point_index in range(test_labels.shape[0]):
+        print(test_point_index,input_for_layers[test_point_index],test_labels[test_point_index])
         if input_for_layers[test_point_index] == test_labels[test_point_index]:
-            print(test_point_index,input_for_layers[test_point_index])
             accuracy += 1
-    # print(train)
-    print(accuracy)
 
+
+    # input_for_layers = train
+    # for layer in weights_list:    
+    #     input_for_layers = layer.forward(input_for_layers)
+
+    # input_for_layers[input_for_layers >= 0.5] = 1
+    # input_for_layers[input_for_layers != 1] = 0
+    # input_for_layers = input_for_layers.flatten()
+    # accuracy = 0
+
+
+    
+    # ## TODO: CHANGE THE INDICES FOR TESTING ACCORDINGLY
+    # for test_point_index in range(labels.shape[0]):
+    #     print(test_point_index,input_for_layers[test_point_index],labels[test_point_index])
+    #     if input_for_layers[test_point_index] == labels[test_point_index]:
+    #         accuracy += 1
+
+    # print(train)
+    print('accuracy: ',accuracy)
+    print('train stats',' num cats: ',labels[labels == 0].shape,' num dogs: ',labels[labels == 1].shape)
     print('accuracy: ',accuracy/test.shape[1],' num cats: ',test_labels[test_labels == 0].shape,' num dogs: ',test_labels[test_labels == 1].shape)
     # sanitycheck(weights_list,train,labels)
     print(precision_recall_fscore_support(test_labels,input_for_layers))
+
+
+    print("BASELINES USING KERAS")
+    model = models.Sequential()
+
+    model.add(
+                layers.Dense(2500,activation='sigmoid',input_dim=train.shape[0])
+            )
+    model.add(
+                layers.Dense(1,activation='sigmoid')
+            )
+                
+    model.compile('SGD',loss='binary_crossentropy',metrics=['accuracy'])
+
+    print(train.shape,labels.shape)
+
+    results = model.fit(
+    train.T, labels.T,
+    epochs= 100 ,
+    validation_data = (test.T, test_labels.T)
+    )
+    print(results)
+
 
 if __name__ == '__main__':
     main()
