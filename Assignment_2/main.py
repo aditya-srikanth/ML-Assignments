@@ -54,7 +54,7 @@ def logistic_regression():
             for epoch in range(hardcoded_params.NUMBER_OF_EPOCHS):
                 Y = sigmoid(W.T.dot(train_X) + b)
                 # loss = -np.sum(train_T*np.log(Y) + (1-train_T)*np.log(1-Y))/N
-                grad_W = train_X.dot(((Y - train_T)*sigmoid(Y,deriv=True)).T)
+                grad_W = train_X.dot(((Y - train_T)).T)
                 grad_b = np.sum(((Y - train_T)))
                 W = W - learning_rate/N*grad_W
                 b = b - learning_rate/N*grad_b
@@ -76,7 +76,7 @@ def logistic_regression():
                 # loss = -np.sum(train_T*np.log(Y) + (1-train_T)*np.log(1-Y))/N + (hardcoded_params.REGULARIZATION_PARAM/(2)) * W.T.dot(W)
                 grad_W = train_X.dot(((Y - train_T)).T) + (hardcoded_params.REGULARIZATION_PARAM) * W
                 W = W - learning_rate/N*grad_W
-                grad_b = np.sum(((Y - train_T)*sigmoid(Y,deriv=True)))
+                grad_b = np.sum(((Y - train_T)))
                 b = b - learning_rate/N*grad_b
             
             # testing
